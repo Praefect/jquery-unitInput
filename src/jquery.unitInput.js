@@ -126,6 +126,9 @@
 
             this.hide();
         },
+        get: function() {
+            return (this.$element.val() + this.value);
+        },
         position: function() {
             var height = this.$bar.outerHeight(true),
                 offset = this.$bar.offset(),
