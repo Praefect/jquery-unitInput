@@ -10,11 +10,15 @@
 
     var UnitInput = $.unitInput = function(element, options) {
         this.element = element;
-        this.$element = $element;
+        this.$element = $(element);
 
         this.options = $.extend({}, UnitInput.defaults, options);
         this.namespace = this.options.namespace;
         this.status = this.options.status;
+        this.value = this.options.value;
+
+        // flag
+        this.opened = false;
 
         this.init();
     };
@@ -23,11 +27,12 @@
         constructor: UnitInput,
         init: function() {
             var self = this,
-                $tpl = $('<div class="' + this.namespace + '"><select></select><div class="' + this.namespace +'-bar"></di><ul></ul></div>');
+                $tpl = $('<div class="'+ this.options.skin + ' ' + this.namespace + '-unit"><select></select><div class="' + this.namespace +'-bar"></div><ul class="' + this.namespace + '-list"></ul></div>');
 
+            this.$tpl = $tpl;
             this.$select = $tpl.find('select');
             this.$ul = $tpl.find('ul');
-            this.$bar = $tpl.find('div');
+            this.$bar = $tpl.find('.' + this.namespace + '-bar');
 
             $.each(this.status, function(key,value) {
                 var $li = $('<li>' + value +'</li>').data('value',key),
@@ -35,23 +40,29 @@
 
                 if (self.value === key) {
                     $option.prop('selected',true);
-                    $li.addClass('.' + this.namespace + '-active');
+                    $li.addClass(self.namespace + '-active');
                 }
 
-                $options.appendTo(self.$select);
+                $option.appendTo(self.$select);
                 $li.appendTo(self.$ul);
             });
 
             this.$li = this.$ul.find('li');
             this.$options = this.$select.find('option');
 
+            this.$element.addClass(this.namespace + '-input ' + this.options.skin);
             this.$select.css({
                 display: 'none'
             });
+            this.$ul.css({
+                display: 'none'
+            });
+
 
             // add to DOM
-            $tpl.after(this.$element);
+            this.$element.after($tpl);
 
+            // attach event
             this.$bar.on('click', function() {
                 self.position.call(self);
 
@@ -63,17 +74,30 @@
 
                 return false;
             });
-            
+
+            this.$ul.delegate('li', 'click', function() {
+                var value = $(this).data('value');
+                self.set.call(self, value);
+                return false;
+            });
+
+
+            // initial
+            this.set(this.value);     
         },
         show: function() {
             this.$ul.css({
-                display: 'none'
+                display: 'block'
             });
+            $(document).on('click.select', $.proxy(this.hide, this));
+            this.opened = true;
         },
         hide: function() {
             this.$ul.css({
-                display: 'block'
+                display: 'none'
             });
+            $(document).off('click.select');
+            this.opened = false;
         },
         set: function(value) {
             var self = this;
@@ -91,7 +115,7 @@
                 
                 if ($(v).data('value') === value) {
                     $(v).addClass(self.namespace + '-active');
-                    self.$bar.find('span').text($(v).find('a').text());
+                    self.$bar.text($(v).text());
 
                     if ($.isFunction(self.options.onChange)) {
                         self.options.onChange(self);
@@ -101,11 +125,30 @@
             });
 
             this.hide();
-        } 
+        },
+        position: function() {
+            var height = this.$bar.outerHeight(true),
+                offset = this.$bar.offset(),
+                contentHeight = this.$ul.height(),
+                top;
+
+            if (contentHeight + offset.top > $(window).height() + $(window).scrollTop()) {
+                top = -contentHeight;
+            } else {
+                top = height;
+            }
+
+            this.$ul.css({
+                position: 'absolute',
+                top: top,
+                left: 0
+            });
+        }
     };
 
     UnitInput.defaults = {
-        namespace: 'UnitInput',
+        namespace: 'unitInput',
+        skin: 'simple',
         status: {
             px: 'px',
             em: 'em',

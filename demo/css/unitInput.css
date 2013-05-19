@@ -1,0 +1,24 @@
+.unitInput-input {
+  display: inline-block;
+  width: 100px;
+}
+
+.unitInput-unit {
+  position: relative;
+  display: inline-block;
+}
+
+.unitInput-unit .unitInput-bar {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-color: red;
+}
+
+.unitInput-unit .unitInput-list {
+  position: absolute;
+}
+
+.unitInput-unit .unitInput-list li {
+  display: block;
+}
